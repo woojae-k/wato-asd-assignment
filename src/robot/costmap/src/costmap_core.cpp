@@ -1,5 +1,8 @@
 #include "costmap_core.hpp"
 
+namespace robot
+{
+
 CostmapCore::CostmapCore(
   double resolution, int width, int height, double origin_x, double origin_y,
   double inflation_radius)
@@ -112,4 +115,6 @@ std::vector<int8_t> CostmapCore::getGridData() const
     }
   }
   return data;
+}
+
 }
