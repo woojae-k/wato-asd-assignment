@@ -8,14 +8,13 @@ namespace robot
 
 class CostmapCore {
   public:
-    // Constructor, we pass in the node's RCLCPP logger to enable logging to terminal
     explicit CostmapCore(
       double resolution, int width, int height, double origin_x, double origin_y,
       double inflation_radius);
 
-    void initializeCostmap();
+    void initialize();
 
-    void convertToGrid(double range, double angle, int & grid_x, int & grid_y) const;
+    bool worldToGrid(double range, double angle, int & grid_x, int & grid_y) const;
 
     void markObstacle(int grid_x, int grid_y);
 
@@ -56,7 +55,6 @@ class CostmapCore {
     // A temporary grid to store inflation costs before merging
     std::vector<std::vector<double>> inflation_grid_;
 
-    rclcpp::Logger logger_;
 
 };
 
