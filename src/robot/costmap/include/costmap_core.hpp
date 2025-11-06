@@ -2,6 +2,7 @@
 #define COSTMAP_CORE_HPP_
 
 #include "rclcpp/rclcpp.hpp"
+#include <vector>
 
 namespace robot
 {
@@ -14,7 +15,7 @@ class CostmapCore {
 
     void initialize();
 
-    bool worldToGrid(double range, double angle, int & grid_x, int & grid_y) const;
+    bool worldToGrid(double world_x, double world_y, int & grid_x, int & grid_y) const;
 
     void markObstacle(int grid_x, int grid_y);
 
@@ -54,8 +55,6 @@ class CostmapCore {
     std::vector<std::vector<int8_t>> grid_;
     // A temporary grid to store inflation costs before merging
     std::vector<std::vector<double>> inflation_grid_;
-
-
 };
 
 }  
