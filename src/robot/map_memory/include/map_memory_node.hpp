@@ -56,4 +56,4 @@ class MapMemoryNode : public rclcpp::Node {
     robot::MapMemoryCore mapmemory_;
 };
 
-#endif // MAP_MEMORY_NODE_HPP_
+#endif

@@ -29,10 +29,11 @@ MapMemoryCore::MapMemoryCore(
 }
 
 // --- REFACTORED ODOM CALLBACK ---
-void MapMemoryCore::processOdometry(double x, double y)
+void MapMemoryCore::processOdometry(double x, double y, double z, double w)
 {
     current_x_ = x;
     current_y_ = y;
+    current_theta_ = 2.0 * std::atan2(z,w);
 
     if (!odom_received_) {
         // This is the first odom message, set initial position
@@ -75,11 +76,12 @@ void MapMemoryCore::resetUpdateFlag()
 
 void MapMemoryCore::integrateCostmap()
 {
+    // 1. Check if costmap is available
     if (!costmap_received_) {
-        return; // No costmap to integrate
+        return;
     }
 
-    // Get origins and resolution
+    // 3. Retrieve map info
     double global_res = global_map_.info.resolution;
     double global_ox = global_map_.info.origin.position.x;
     double global_oy = global_map_.info.origin.position.y;
@@ -88,39 +90,48 @@ void MapMemoryCore::integrateCostmap()
     double local_ox = latest_costmap_.info.origin.position.x;
     double local_oy = latest_costmap_.info.origin.position.y;
 
-    if (std::abs(global_res - local_res) > 1e-5) {
-        RCLCPP_WARN(rclcpp::get_logger("map_memory_core"), "Resolution mismatch! Global: %.3f, Local: %.3f. Skipping update.", global_res, local_res);
-        return;
-    }
+    uint32_t local_w = latest_costmap_.info.width;
+    uint32_t local_h = latest_costmap_.info.height;
+    uint32_t global_w = global_map_.info.width;
+    uint32_t global_h = global_map_.info.height;
 
-    // Iterate over every cell in the *local* costmap
-    for (uint32_t cy = 0; cy < latest_costmap_.info.height; ++cy) {
-        for (uint32_t cx = 0; cx < latest_costmap_.info.width; ++cx) {
-            
-            // 1. Get value from local costmap
-            size_t local_idx = cy * latest_costmap_.info.width + cx;
+    // 4. Precompute rotation terms
+    double cos_t = std::cos(current_theta_);
+    double sin_t = std::sin(current_theta_);
+
+    // 5. Iterate through all cells in the local costmap
+    for (uint32_t cy = 0; cy < local_h; ++cy) {
+        for (uint32_t cx = 0; cx < local_w; ++cx) {
+            size_t local_idx = cy * local_w + cx;
             int8_t local_val = latest_costmap_.data[local_idx];
 
+            // Skip unknown cells
             if (local_val == -1) {
                 continue;
             }
 
-            // 2. Find world coordinates of the local cell's center
-            double world_x = local_ox + (cx + 0.5) * local_res;
-            double world_y = local_oy + (cy + 0.5) * local_res;
+            // 6. Compute local cell center
+            double local_x = local_ox + (cx + 0.5) * local_res;
+            double local_y = local_oy + (cy + 0.5) * local_res;
 
-            // 3. Find the corresponding cell index in the *global* map
-            int gx = static_cast<int>(std::floor((world_x - global_ox) / global_res));
-            int gy = static_cast<int>(std::floor((world_y - global_oy) / global_res));
+            // 7. Transform local → global using robot pose
+            double global_x = current_x_ + local_x * cos_t - local_y * sin_t;
+            double global_y = current_y_ + local_x * sin_t + local_y * cos_t;
 
-            // 4. Check if the cell is within the bounds of the global map
-            if (gx >= 0 && gx < static_cast<int>(global_map_.info.width) &&
-                gy >= 0 && gy < static_cast<int>(global_map_.info.height))
+            // 8. Find the corresponding cell index in the global map
+            int gx = static_cast<int>(std::floor((global_x - global_ox) / global_res));
+            int gy = static_cast<int>(std::floor((global_y - global_oy) / global_res));
+
+            // 9. Check bounds
+            if (gx < 0 || gx >= static_cast<int>(global_w) ||
+                gy < 0 || gy >= static_cast<int>(global_h))
             {
-                // 5. Update the global map
-                size_t global_idx = gy * global_map_.info.width + gx;
-                global_map_.data[global_idx] = local_val;
+                continue;
             }
+
+            // 10. Update global map cell
+            size_t global_idx = gy * global_w + gx;
+            global_map_.data[global_idx] = local_val;
         }
     }
 }

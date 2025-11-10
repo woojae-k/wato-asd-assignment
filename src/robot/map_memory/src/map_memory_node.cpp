@@ -44,7 +44,10 @@ void MapMemoryNode::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
     // Extract data and pass it to the core
     double x = msg->pose.pose.position.x;
     double y = msg->pose.pose.position.y;
-    mapmemory_.processOdometry(x, y);
+    double z = msg->pose.pose.orientation.z;
+    double w = msg->pose.pose.orientation.w;
+
+    mapmemory_.processOdometry(x, y, z, w);
 }
 
 void MapMemoryNode::costmapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)

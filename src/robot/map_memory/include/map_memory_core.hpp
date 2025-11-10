@@ -33,7 +33,7 @@ class MapMemoryCore {
      * @param x The current x-position of the robot.
      * @param y The current y-position of the robot.
      */
-    void processOdometry(double x, double y);
+    void processOdometry(double x, double y, double z, double w);
 
     /**
      * @brief Processes an incoming costmap.
@@ -74,6 +74,7 @@ private:
     double last_update_y_{0.0};
     double current_x_{0.0};
     double current_y_{0.0};
+    double current_theta_{0.0};
 
     // --- Configuration ---
     // Member variables used in your constructor
