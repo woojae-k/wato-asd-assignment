@@ -24,10 +24,10 @@ class CostmapNode : public rclcpp::Node {
     void publishCostmap();
 
     double resolution_ = 0.1;      // meters/cell
-    int map_width_ = 600;          // cells
-    int map_height_ = 600;         // cells
-    double origin_x_ = -30.0;      // meters (map_width_ / 2 * resolution_)
-    double origin_y_ = -30.0;      // meters (map_height_ / 2 * resolution_)
+    int map_width_ = 500;          // cells
+    int map_height_ = 500;         // cells
+    double origin_x_ = -25.0;      // meters (map_width_ / 2 * resolution_)
+    double origin_y_ = -25.0;      // meters (map_height_ / 2 * resolution_)
     double inflation_radius_ = 1.0;  // meters
 
     nav_msgs::msg::OccupancyGrid costmap_msg_;

@@ -7,13 +7,13 @@
 CostmapNode::CostmapNode() : Node("costmap"), costmap_(robot::CostmapCore(resolution_, map_width_, map_height_, origin_x_, origin_y_, inflation_radius_)) {
   // Initialize publihser
   occupancy_grid_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
-    "/costmap", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local());
+    "/costmap", 10);
 
   //Initialize subscriber
   laser_scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-    "/lidar", rclcpp::QoS(rclcpp::KeepLast(1)), std::bind(&CostmapNode::laserCallback, this, std::placeholders::_1));
+    "/lidar", 10, std::bind(&CostmapNode::laserCallback, this, std::placeholders::_1));
   
-  costmap_msg_.header.frame_id = "base_link";
+  costmap_msg_.header.frame_id = "robot/chassis/lidar";
   costmap_msg_.info.resolution = resolution_;
   costmap_msg_.info.width = map_width_;
   costmap_msg_.info.height = map_height_;
