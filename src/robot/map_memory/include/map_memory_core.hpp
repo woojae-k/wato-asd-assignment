@@ -65,7 +65,7 @@ class MapMemoryCore {
      */
     void integrateCostmap();
 
-private:
+  private:
     // --- State Variables ---
     nav_msgs::msg::OccupancyGrid global_map_;
     nav_msgs::msg::OccupancyGrid latest_costmap_;
