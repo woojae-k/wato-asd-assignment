@@ -22,7 +22,7 @@ MapMemoryCore::MapMemoryCore(
   global_map_.info.origin.orientation.w = 1.0; // No rotation
 
   // Initialize all cells to "unknown" (-1)
-  global_map_.data.resize(global_map_.info.width * global_map_.info.height, -1);
+  global_map_.data.resize(global_map_.info.width * global_map_.info.height, 0);
 
   RCLCPP_INFO(rclcpp::get_logger("map_memory_core"), "Global map initialized: %u x %u cells @ %.2f m/res",
     global_map_.info.width, global_map_.info.height, global_map_.info.resolution);

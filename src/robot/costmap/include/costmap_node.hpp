@@ -30,8 +30,6 @@ class CostmapNode : public rclcpp::Node {
     double origin_y_ = -25.0;      // meters (map_height_ / 2 * resolution_)
     double inflation_radius_ = 1.0;  // meters
 
-    nav_msgs::msg::OccupancyGrid costmap_msg_;
-
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancy_grid_pub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_sub_;
 

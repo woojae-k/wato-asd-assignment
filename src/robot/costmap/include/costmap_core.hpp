@@ -3,6 +3,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include <vector>
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "nav_msgs/msg/occupancy_grid.hpp"
 
 namespace robot
 {
@@ -15,13 +17,18 @@ class CostmapCore {
 
     void initialize();
 
+    void processLidar(const sensor_msgs::msg::LaserScan::SharedPtr &msg);
+
     bool worldToGrid(double world_x, double world_y, int & grid_x, int & grid_y) const;
 
     void markObstacle(int grid_x, int grid_y);
 
     void inflateObstacles();
 
-    std::vector<int8_t> getGridData() const;
+    std::vector<int8_t> processGridData() const;
+  
+    // nav_msgs::msg::OccupancyGrid getCostmap() const {return costmap_msg_;}
+    nav_msgs::msg::OccupancyGrid getCostmap();
 
     int getWidth() const {return width_;}
     int getHeight() const {return height_;}
@@ -38,7 +45,7 @@ class CostmapCore {
      */
     double computeInflationCost(double distance) const;
 
-    // --- Map Parameters ---
+    // Map Parameters 
     double resolution_;
     int width_;
     int height_;
@@ -46,11 +53,14 @@ class CostmapCore {
     double origin_y_;
     double inflation_radius_;
 
-    // --- Constants ---
+    // Constants 
     const int8_t MAX_COST = 100;
     const int8_t FREE_SPACE = 0;
+    
+    // Message
+    nav_msgs::msg::OccupancyGrid costmap_msg_;
 
-    // --- Grids ---
+    // Grids
     // The main grid holding the final cost values (0-100)
     std::vector<std::vector<int8_t>> grid_;
     // A temporary grid to store inflation costs before merging

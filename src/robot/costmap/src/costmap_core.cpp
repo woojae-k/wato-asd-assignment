@@ -17,6 +17,14 @@ CostmapCore::CostmapCore(
   grid_.resize(height_, std::vector<int8_t>(width_));
   inflation_grid_.resize(height_, std::vector<double>(width_));
 
+  costmap_msg_.header.frame_id = "robot/chassis/lidar";
+  costmap_msg_.info.resolution = resolution_;
+  costmap_msg_.info.width = width_;
+  costmap_msg_.info.height = height_;
+  costmap_msg_.info.origin.position.x = origin_x_;
+  costmap_msg_.info.origin.position.y = origin_y_;
+  costmap_msg_.info.origin.orientation.w = 1.0;
+
   // Initialize the costmap
   initialize();
 }
@@ -29,6 +37,28 @@ void CostmapCore::initialize()
       inflation_grid_[y][x] = 0.0;
     }
   }
+}
+
+void CostmapCore::processLidar(const sensor_msgs::msg::LaserScan::SharedPtr &msg)
+{
+
+  costmap_msg_.header.frame_id = msg->header.frame_id;
+
+  for (size_t i = 0; i < msg->ranges.size(); ++i) {
+    double range = msg->ranges[i];
+    double angle = msg->angle_min + i * msg->angle_increment;
+
+    if (range >= msg->range_min && range <= msg->range_max && std::isfinite(range)) {
+      double world_x = range * std::cos(angle);
+      double world_y = range * std::sin(angle);
+
+      int grid_x, grid_y;
+      if (worldToGrid(world_x, world_y, grid_x, grid_y)) {
+        markObstacle(grid_x, grid_y);
+      }
+    }
+  }
+
 }
 
 bool CostmapCore::worldToGrid(double world_x, double world_y, int & grid_x, int & grid_y) const
@@ -105,7 +135,7 @@ void CostmapCore::inflateObstacles()
   }
 }
 
-std::vector<int8_t> CostmapCore::getGridData() const
+std::vector<int8_t> CostmapCore::processGridData() const
 {
   std::vector<int8_t> data(width_ * height_);
   // Flatten the 2D grid into a 1D vector (row-major order)
@@ -115,6 +145,13 @@ std::vector<int8_t> CostmapCore::getGridData() const
     }
   }
   return data;
+}
+
+nav_msgs::msg::OccupancyGrid CostmapCore::getCostmap() 
+{
+  std::vector<int8_t> grid_data = processGridData();
+  costmap_msg_.data = std::move(grid_data);
+  return costmap_msg_;
 }
 
 }
